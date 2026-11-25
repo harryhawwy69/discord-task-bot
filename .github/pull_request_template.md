@@ -1,10 +1,19 @@
+Fixes #
+
+<!--
+  Put the number of your issue after "Fixes #". A maintainer must assign
+  that issue to you BEFORE you open this pull request. If not, a workflow
+  closes the pull request automatically. See "Making a change" in
+  CONTRIBUTING.md.
+-->
+
 ## What changed
 
 <!-- One or two sentences. -->
 
 ## Why
 
-<!-- The problem this solves. Link the issue: "Fixes #12". -->
+<!-- The problem this solves. -->
 
 ## How I tested it
 

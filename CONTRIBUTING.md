@@ -114,9 +114,20 @@ real server.
 
 ## Making a change
 
-1. **Open an issue first** for anything bigger than a small fix, so we agree on the plan before you
-   write code. Look for issues labeled
-   [`good first issue`](https://github.com/philaconvalley/discord-task-bot/labels/good%20first%20issue).
+1. **Claim an issue before you write code.** Every pull request starts from an issue that a
+   maintainer assigned to you:
+   1. Find an open issue labeled
+      [`community`](https://github.com/philaconvalley/discord-task-bot/labels/community), or open a
+      new issue that describes the problem.
+   2. Comment on the issue to ask for it. Say a sentence about how you plan to fix it.
+   3. Wait for a maintainer to assign the issue to you. We try to answer within a few days. To get a
+      faster answer, ask in Discord.
+   4. Put `Fixes #<number>` in your pull request description.
+
+   **A workflow closes a pull request automatically when its issue is not assigned to its author.**
+   We keep our open issues for people who are part of the PhilaCon Valley community, and the claim
+   step stops two people from fixing the same issue at the same time. Maintainers can let a pull
+   request through with the `maintainer-approved` label, for example a one-line typo fix.
 2. **Branch from `main`.** `main` is protected: every change goes through a pull request, and CI
    must pass.
 3. **Write the test first** when you can. Run `npm test` and watch it fail, then make it pass.

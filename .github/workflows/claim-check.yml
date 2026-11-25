@@ -1,0 +1,74 @@
+name: Claim check
+
+# Closes a pull request from an outside contributor unless it links an issue
+# assigned to that contributor. See "Making a change" in CONTRIBUTING.md.
+#
+# Security: pull_request_target runs with a token that can write to this
+# repository, even for pull requests from forks. That is why it can close
+# them. It is safe only because this workflow NEVER checks out or runs code
+# from the pull request. The checkout below gets the base branch (main), and
+# the script only reads the pull request's metadata. Do not add a step that
+# checks out the pull request's head, installs its dependencies, or runs its
+# scripts.
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  claim-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the base branch (never the pull request)
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Close the pull request if its issue is not claimed
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { decideClaim, linkedIssueNumbers, closeMessage } = require('./.github/scripts/claim-check.js');
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+
+            const { data: access } = await github.rest.repos.getCollaboratorPermissionLevel({
+              ...context.repo,
+              username: author,
+            });
+
+            const linkedIssues = [];
+            for (const number of linkedIssueNumbers(pr.body)) {
+              try {
+                const { data } = await github.rest.issues.get({ ...context.repo, issue_number: number });
+                linkedIssues.push({
+                  number,
+                  isPullRequest: Boolean(data.pull_request),
+                  assignees: data.assignees.map((assignee) => assignee.login),
+                });
+              } catch (error) {
+                core.warning(`Could not read #${number}: ${error.message}`);
+              }
+            }
+
+            const decision = decideClaim({
+              author,
+              authorType: pr.user.type,
+              permission: access.permission,
+              labels: pr.labels.map((label) => label.name),
+              linkedIssues,
+            });
+            core.info(`Claim check for #${pr.number} by ${author}: ${decision.reason}`);
+            if (decision.ok) return;
+
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: pr.number,
+              body: closeMessage(decision, author),
+            });
+            await github.rest.pulls.update({ ...context.repo, pull_number: pr.number, state: 'closed' });
